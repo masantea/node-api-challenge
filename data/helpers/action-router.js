@@ -3,8 +3,8 @@ const actions = require("./actionModel")
 
 const router = express.Router()
 
-router.get('/projects/:id/actions/actionId',(req, res) => {
-  actions.get(req.params.id)
+router.get('/projects/:id/actions',(req, res) => {
+  actions.get()
   .then((action) => {
     res.status(200).json(action)
   })
@@ -15,15 +15,16 @@ router.get('/projects/:id/actions/actionId',(req, res) => {
   })
 });
 
-router.get('/', (req, res) => {
-  // do your magic!
-});
+router.post("/projects/:id/actions", checkActionData(), (req, res, next) => {
+	actions.insert(req.body)
+		.then((action) => {
+			res.status(201).json(action)
+		})
+		.catch(next)
+})
 
-router.get('/:id', (req, res) => {
-  // do your magic!
-});
 
-router.delete("/projects/:id/actions/actionId",(req, res, next) => {
+router.delete("/projects/:id/actions/:actionId",(req, res, next) => {
 	actions.remove(req.params.id)
 		.then(() => {
 			res.status(200).json({
@@ -33,7 +34,7 @@ router.delete("/projects/:id/actions/actionId",(req, res, next) => {
 		.catch(next)
 })
 
-router.put("/projects/:id/actions/actionId", (req, res, next) => {
+router.put("/projects/:id/actions/:actionId", checkActionData(), (req, res, next) => {
 	actions.update(req.params.id, req.body)
 		.then((action) => {
 			if (action) {
@@ -47,9 +48,15 @@ router.put("/projects/:id/actions/actionId", (req, res, next) => {
 		.catch(next)
 })
 
-// custom middleware
-
-function validatePostId(req, res, next) {
-  // do your magic!
+function checkActionData() {
+	return (req, res, next) => {
+		if (!req.body.project_id || !req.body.description || !req.body.notes) {
+			return res.status(400).json({
+				message: "Missing user name , notes or description",
+			})
+		}
+		next()
+	}
 }
+
 module.exports = router;
